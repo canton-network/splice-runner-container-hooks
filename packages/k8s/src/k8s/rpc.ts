@@ -18,10 +18,10 @@ async function retryPromise<T>(operation: () => Promise<T>, maxRetries: number):
     } catch (error) {
       retries++;
       if (retries >= maxRetries) {
-        core.error(`Error in fetch: ${error}`);
+        core.error(`Error running an rpc on the runner (did the runner die?): ${error}`);
         throw error;
       }
-      core.warning(`Error in fetch: ${error}, retrying...`);
+      core.warning(`Error running an rpc on the runner (did the runner die?): ${error}, retrying...`);
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
   }
