@@ -9,7 +9,7 @@ import {
   getPodStatus,
   waitForJobToComplete,
   waitForPodPhases
-} from '../k8s'
+} from '../k8s/retryWrappers'
 import {
   containerVolumes,
   fixArgs,
