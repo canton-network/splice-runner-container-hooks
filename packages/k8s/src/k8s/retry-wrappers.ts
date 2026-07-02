@@ -38,8 +38,11 @@ function isTransientError(err: unknown): boolean {
   )
 }
 
-const sleep = (ms: number): Promise<void> =>
-  new Promise(resolve => setTimeout(resolve, ms))
+// wrapped in an object so tests can mock the backoff delay
+const timers = {
+  sleep: (ms: number): Promise<void> =>
+    new Promise(resolve => setTimeout(resolve, ms))
+}
 
 // exponential backoff + full jitter, bounded to a max_delay.
 async function withRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
@@ -59,7 +62,7 @@ async function withRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
           (err as { message?: string })?.message ?? err
         }`
       )
-      await sleep(delayMs)
+      await timers.sleep(delayMs)
     }
   }
 }
@@ -151,4 +154,6 @@ export const getPrepareJobTimeoutSeconds = (): number =>
 
 // Exposed for unit testing
 export const isTransientErrorForTest = isTransientError
+export const withRetryForTest = withRetry
+export const timersForTest = timers
 
