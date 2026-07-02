@@ -10,7 +10,7 @@ import {
 } from '../src/k8s/retry-wrappers'
 
 describe('transient error classification', () => {
-  it('retries the apiserver ETIMEDOUT (code and message forms)', () => {
+  it('classifies apiserver ETIMEDOUT as transient error', () => {
     expect(isTransientError({ code: 'ETIMEDOUT' })).toBe(true)
     expect(isTransientError({ cause: { code: 'ETIMEDOUT' } })).toBe(true)
     expect(isTransientError(new Error('connect ETIMEDOUT 34.18.24.1:443'))).toBe(
@@ -18,14 +18,14 @@ describe('transient error classification', () => {
     )
   })
 
-  it('retries 429 and 5xx http status codes', () => {
+  it('classifies 429 and 5xx http status codes as transient error', () => {
     for (const statusCode of [429, 500, 502, 503, 504]) {
       expect(isTransientError({ statusCode })).toBe(true)
     }
     expect(isTransientError({ response: { statusCode: 503 } })).toBe(true)
   })
 
-  it('does NOT retry non-transient errors', () => {
+  it('classifies 4xx (except 429) as non-transient error', () => {
     for (const statusCode of [400, 401, 403, 404, 409, 422]) {
       expect(isTransientError({ statusCode })).toBe(false)
     }
