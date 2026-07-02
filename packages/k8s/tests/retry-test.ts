@@ -3,27 +3,27 @@ Copyright (c) 2024 Digital Asset (Switzerland) GmbH and/or its affiliates. All r
 SPDX-License-Identifier: Apache-2.0
 */
 
-import { isTransientErrorForTest as isTransient } from '../src/k8s/retry-wrappers'
+import { isTransientErrorForTest as isTransientError } from '../src/k8s/retry-wrappers'
 
-describe('k8s apiserver retry classification', () => {
+describe('transient error classification', () => {
   it('retries the apiserver ETIMEDOUT (code and message forms)', () => {
-    expect(isTransient({ code: 'ETIMEDOUT' })).toBe(true)
-    expect(isTransient({ cause: { code: 'ETIMEDOUT' } })).toBe(true)
-    expect(isTransient(new Error('connect ETIMEDOUT 34.18.24.1:443'))).toBe(
+    expect(isTransientError({ code: 'ETIMEDOUT' })).toBe(true)
+    expect(isTransientError({ cause: { code: 'ETIMEDOUT' } })).toBe(true)
+    expect(isTransientError(new Error('connect ETIMEDOUT 34.18.24.1:443'))).toBe(
       true
     )
   })
 
-  it('retries 429 and 5xx', () => {
+  it('retries 429 and 5xx http status codes', () => {
     for (const statusCode of [429, 500, 502, 503, 504]) {
-      expect(isTransient({ statusCode })).toBe(true)
+      expect(isTransientError({ statusCode })).toBe(true)
     }
-    expect(isTransient({ response: { statusCode: 503 } })).toBe(true)
+    expect(isTransientError({ response: { statusCode: 503 } })).toBe(true)
   })
 
   it('does NOT retry non-transient errors', () => {
     for (const statusCode of [400, 401, 403, 404, 409, 422]) {
-      expect(isTransient({ statusCode })).toBe(false)
+      expect(isTransientError({ statusCode })).toBe(false)
     }
     // Other socket errnos are no longer treated as transient.
     for (const code of [
@@ -31,10 +31,10 @@ describe('k8s apiserver retry classification', () => {
       'ECONNREFUSED',
       'ECONNABORTED',
     ]) {
-      expect(isTransient({ code })).toBe(false)
+      expect(isTransientError({ code })).toBe(false)
     }
-    expect(isTransient(null)).toBe(false)
-    expect(isTransient(undefined)).toBe(false)
+    expect(isTransientError(null)).toBe(false)
+    expect(isTransientError(undefined)).toBe(false)
   })
 })
 
