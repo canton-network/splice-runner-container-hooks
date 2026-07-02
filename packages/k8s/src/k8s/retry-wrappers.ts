@@ -20,6 +20,11 @@ import { ContainerInfo, Registry } from 'hooklib'
 import * as raw from './index'
 import { PodPhase } from './utils'
 
+// error codes/messages considered transient
+const TRANSIENT_ERROR_PATTERN = /\bETIMEDOUT\b/
+// HTTP status codes considered transient
+const TRANSIENT_HTTP_STATUS_CODES = [429, 500, 502, 503, 504]
+
 // check if the error is a transient failure
 function isTransientError(err: unknown): boolean {
   const e = (err ?? {}) as Record<string, unknown>
@@ -28,15 +33,15 @@ function isTransientError(err: unknown): boolean {
     e.statusCode ?? (e.response as Record<string, unknown>)?.statusCode
   const msg = typeof e.message === 'string' ? e.message : String(err ?? '')
   return (
-    /\bETIMEDOUT\b/.test(`${code ?? ''} ${msg}`) ||
-    (typeof status === 'number' && [429, 500, 502, 503, 504].includes(status))
+    TRANSIENT_ERROR_PATTERN.test(`${code ?? ''} ${msg}`) ||
+    (typeof status === 'number' && TRANSIENT_HTTP_STATUS_CODES.includes(status))
   )
 }
 
 const sleep = (ms: number): Promise<void> =>
   new Promise(resolve => setTimeout(resolve, ms))
 
-// exponential backoff + full jitter, bounded to max_delay.
+// exponential backoff + full jitter, bounded to a max_delay.
 async function withRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
   const attempts = 5
   const maxDelayMs = 8000
@@ -47,10 +52,10 @@ async function withRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
       if (!isTransientError(err) || attempt >= attempts) {
         throw err
       }
-      const baseMs = 1000 * 2 ** (attempt - 1)
-      const delayMs = Math.min(maxDelayMs, Math.floor(baseMs + Math.random() * 1000))
+      const baseMs = Math.min(maxDelayMs, 1000 * 2 ** (attempt - 1))
+      const delayMs = Math.floor(baseMs * Math.random())
       core.warning(
-        `[k8s ${label}] transient error (attempt ${attempt}/${attempts}), retrying in ${delayMs}ms: ${
+        `[${label}] transient error (attempt ${attempt}/${attempts}), retrying in ${delayMs}ms: ${
           (err as { message?: string })?.message ?? err
         }`
       )
@@ -143,3 +148,7 @@ export const containerPorts = (
 
 export const getPrepareJobTimeoutSeconds = (): number =>
   raw.getPrepareJobTimeoutSeconds()
+
+// Exposed for unit testing
+export const isTransientErrorForTest = isTransientError
+

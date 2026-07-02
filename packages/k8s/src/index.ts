@@ -7,7 +7,7 @@ import {
   runScriptStep
 } from './hooks'
 import { namespace, requiredPermissions } from './k8s'
-import { isAuthPermissionsOK } from './k8s/retryWrappers'
+import { isAuthPermissionsOK } from './k8s/retry-wrappers'
 
 async function run(): Promise<void> {
   try {

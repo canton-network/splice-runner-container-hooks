@@ -16,7 +16,7 @@ import {
   waitForPodPhases,
   getPrepareJobTimeoutSeconds,
   createService,
-} from '../k8s/retryWrappers'
+} from '../k8s/retry-wrappers'
 import {
   containerVolumes,
   DEFAULT_CONTAINER_ENTRY_POINT,
