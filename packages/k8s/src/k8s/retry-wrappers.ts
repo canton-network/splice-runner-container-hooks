@@ -69,78 +69,84 @@ async function withRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
 
 // Retried API calls, only the ones the hooks import
 
-export const createPod = (
+export const createPod = async (
   jobContainer?: k8s.V1Container,
   services?: k8s.V1Container[],
   registry?: Registry,
   extension?: k8s.V1PodTemplateSpec
 ): Promise<k8s.V1Pod> =>
-  withRetry('createPod', () =>
+  withRetry('createPod', async () =>
     raw.createPod(jobContainer, services, registry, extension)
   )
 
-export const createService = (pod: k8s.V1Pod): Promise<k8s.V1Service> =>
-  withRetry('createService', () => raw.createService(pod))
+export const createService = async (pod: k8s.V1Pod): Promise<k8s.V1Service> =>
+  withRetry('createService', async () => raw.createService(pod))
 
-export const createJob = (
+export const createJob = async (
   container: k8s.V1Container,
   extension?: k8s.V1PodTemplateSpec
 ): Promise<k8s.V1Job> =>
-  withRetry('createJob', () => raw.createJob(container, extension))
+  withRetry('createJob', async () => raw.createJob(container, extension))
 
-export const getContainerJobPodName = (jobName: string): Promise<string> =>
-  withRetry('getContainerJobPodName', () => raw.getContainerJobPodName(jobName))
+export const getContainerJobPodName = async (
+  jobName: string
+): Promise<string> =>
+  withRetry('getContainerJobPodName', async () =>
+    raw.getContainerJobPodName(jobName)
+  )
 
-export const createSecretForEnvs = (envs: {
+export const createSecretForEnvs = async (envs: {
   [key: string]: string
 }): Promise<string> =>
-  withRetry('createSecretForEnvs', () => raw.createSecretForEnvs(envs))
+  withRetry('createSecretForEnvs', async () => raw.createSecretForEnvs(envs))
 
-export const getPodStatus = (
+export const getPodStatus = async (
   name: string
 ): Promise<k8s.V1PodStatus | undefined> =>
-  withRetry('getPodStatus', () => raw.getPodStatus(name))
+  withRetry('getPodStatus', async () => raw.getPodStatus(name))
 
-export const isAuthPermissionsOK = (): Promise<boolean> =>
-  withRetry('isAuthPermissionsOK', () => raw.isAuthPermissionsOK())
+export const isAuthPermissionsOK = async (): Promise<boolean> =>
+  withRetry('isAuthPermissionsOK', async () => raw.isAuthPermissionsOK())
 
-export const isPodContainerAlpine = (
+export const isPodContainerAlpine = async (
   podName: string,
   containerName: string
 ): Promise<boolean> =>
-  withRetry('isPodContainerAlpine', () =>
+  withRetry('isPodContainerAlpine', async () =>
     raw.isPodContainerAlpine(podName, containerName)
   )
 
-export const prunePods = (): Promise<void> =>
-  withRetry('prunePods', () => raw.prunePods())
+export const prunePods = async (): Promise<void> =>
+  withRetry('prunePods', async () => raw.prunePods())
 
-export const pruneServices = (): Promise<void> =>
-  withRetry('pruneServices', () => raw.pruneServices())
+export const pruneServices = async (): Promise<void> =>
+  withRetry('pruneServices', async () => raw.pruneServices())
 
-export const pruneSecrets = (): Promise<void> =>
-  withRetry('pruneSecrets', () => raw.pruneSecrets())
+export const pruneSecrets = async (): Promise<void> =>
+  withRetry('pruneSecrets', async () => raw.pruneSecrets())
 
 export const prunePodsAndServices = async (): Promise<void> => {
   await Promise.all([prunePods(), pruneServices()])
 }
 
-export const waitForPodPhases = (
+export const waitForPodPhases = async (
   podName: string,
   awaitingPhases: Set<PodPhase>,
   backOffPhases: Set<PodPhase>,
   maxTimeSeconds?: number
 ): Promise<void> =>
-  withRetry('waitForPodPhases', () =>
+  withRetry('waitForPodPhases', async () =>
     raw.waitForPodPhases(podName, awaitingPhases, backOffPhases, maxTimeSeconds)
   )
 
-export const waitForJobToComplete = (jobName: string): Promise<void> =>
-  withRetry('waitForJobToComplete', () => raw.waitForJobToComplete(jobName))
+export const waitForJobToComplete = async (jobName: string): Promise<void> =>
+  withRetry('waitForJobToComplete', async () =>
+    raw.waitForJobToComplete(jobName)
+  )
 
 // Not retried, re-exported unchanged
 
-export const getPodLogs = (
+export const getPodLogs = async (
   podName: string,
   containerName: string
 ): Promise<void> => raw.getPodLogs(podName, containerName)
