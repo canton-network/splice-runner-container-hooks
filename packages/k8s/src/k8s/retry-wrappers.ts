@@ -40,7 +40,7 @@ function isTransientError(err: unknown): boolean {
 
 // wrapped in an object so tests can mock the backoff delay
 const timers = {
-  sleep: (ms: number): Promise<void> =>
+  sleep: async (ms: number): Promise<void> =>
     new Promise(resolve => setTimeout(resolve, ms))
 }
 
@@ -156,4 +156,3 @@ export const getPrepareJobTimeoutSeconds = (): number =>
 export const isTransientErrorForTest = isTransientError
 export const withRetryForTest = withRetry
 export const timersForTest = timers
-
