@@ -6,7 +6,8 @@ import {
   runContainerStep,
   runScriptStep
 } from './hooks'
-import { isAuthPermissionsOK, namespace, requiredPermissions } from './k8s'
+import { namespace, requiredPermissions } from './k8s'
+import { isAuthPermissionsOK } from './k8s/retry-wrappers'
 
 async function run(): Promise<void> {
   try {
